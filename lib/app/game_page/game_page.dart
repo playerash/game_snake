@@ -207,9 +207,18 @@ class _GamePageState extends State<GamePage> {
 
   Widget getControls() {
     return ControlPanel(onTapped: (Direction newDirection) {
-      print(newDirection);
-      direction = newDirection;
-      print(direction);
+      if (direction == Direction.left && newDirection == Direction.right) {
+        direction = Direction.left;
+      } else if (direction == Direction.right &&
+          newDirection == Direction.left) {
+        direction = Direction.right;
+      } else if (direction == Direction.up && newDirection == Direction.down) {
+        direction = Direction.up;
+      } else if (direction == Direction.down && newDirection == Direction.up) {
+        direction = Direction.down;
+      } else {
+        direction = newDirection;
+      }
     });
   }
 
@@ -227,7 +236,7 @@ class _GamePageState extends State<GamePage> {
   void changeSpeed() {
     if (timer != null && timer!.isActive) timer!.cancel();
 
-    timer = Timer.periodic(Duration(milliseconds: 200 ~/ speed), (timer) {
+    timer = Timer.periodic(Duration(milliseconds: 500 ~/ speed), (timer) {
       setState(() {});
     });
   }
