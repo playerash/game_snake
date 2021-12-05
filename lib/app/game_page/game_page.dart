@@ -21,7 +21,7 @@ class _GamePageState extends State<GamePage> {
   Direction direction = Direction.down;
 
   late Piece food;
-  late Offset foodPosition;
+  Offset? foodPosition;
 
   late double screenWidth;
   late double screenHeight;
@@ -144,7 +144,17 @@ class _GamePageState extends State<GamePage> {
   }
 
   void drawFood() {
-    
+    if (foodPosition == null) {
+      foodPosition = getRandomPositionWithinRange();
+    }
+
+    food = Piece(
+      posX: foodPosition!.dx.toInt(),
+      posY: foodPosition!.dy.toInt(),
+      size: step,
+      color: Colors.blue,
+      isAnimated: true,
+    );
   }
 
   List<Piece> getPieces() {
@@ -234,7 +244,8 @@ class _GamePageState extends State<GamePage> {
             Stack(
               children: getPieces(),
             ),
-          getControls(),
+            getControls(),
+            food,
           ],
         ),
       ),
