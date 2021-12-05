@@ -86,9 +86,18 @@ class _GamePageState extends State<GamePage> {
     );
   }
 
-  // bool detectCollision(Offset position) {
-  //   //TODO
-  // }
+  bool detectCollision(Offset position) {
+    if (position.dx >= upperBoundX && direction == Direction.right) {
+      return true;
+    } else if (position.dx <= lowerBoundX && direction == Direction.left) {
+      return true;
+    } else if (position.dy >= upperBoundY && direction == Direction.down) {
+      return true;
+    } else if (position.dy <= lowerBoundY && direction == Direction.up) {
+      return true;
+    }
+    return false;
+  }
 
   void showGameOverDialog() {
     showDialog(
@@ -130,6 +139,13 @@ class _GamePageState extends State<GamePage> {
 
   Future<Offset> getNextPosition(Offset position) async {
     late Offset nextPosition;
+
+    if (detectCollision(position) == true) {
+      if (timer != null && timer!.isActive) timer!.cancel();
+      await Future.delayed(
+          Duration(milliseconds: 500), () => showGameOverDialog());
+      return position;
+    }
 
     if (direction == Direction.right) {
       nextPosition = Offset(position.dx + step, position.dy);
@@ -249,6 +265,7 @@ class _GamePageState extends State<GamePage> {
         color: Colors.amber,
         child: Stack(
           children: [
+            getPlayAreaBorder(),
             Stack(
               children: getPieces(),
             ),
