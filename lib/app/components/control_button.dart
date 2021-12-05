@@ -13,7 +13,7 @@ class ControlButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Opacity(
       opacity: 0.5,
-      child:  SizedBox(
+      child: SizedBox(
         width: 80.0,
         height: 80.0,
         child: FittedBox(
@@ -21,7 +21,9 @@ class ControlButton extends StatelessWidget {
             backgroundColor: Colors.green,
             elevation: 0.0,
             child: icon,
-            onPressed: onPressed(),
+            onPressed: () {
+              onPressed();
+            },
           ),
         ),
       ),

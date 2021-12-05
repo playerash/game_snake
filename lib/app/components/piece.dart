@@ -60,6 +60,7 @@ class _PieceState extends State<Piece> with SingleTickerProviderStateMixin {
           height: widget.size.toDouble(),
           decoration: BoxDecoration(
             color: widget.color,
+            //border: BorderSide(color: Colros),
             borderRadius: BorderRadius.circular(widget.size.toDouble())
           ),
         ),

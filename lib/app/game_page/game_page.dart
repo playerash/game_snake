@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'dart:html';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:game_snake/app/components/control_panel.dart';
 import 'package:game_snake/app/components/piece.dart';
 import 'package:game_snake/app/direction/direction.dart';
 import 'package:game_snake/app/direction/direction_type.dart';
@@ -18,7 +18,7 @@ class _GamePageState extends State<GamePage> {
   List<Offset> positions = [];
   int length = 5;
   int step = 20;
-  Direction direction = Direction.right;
+  Direction direction = Direction.down;
 
   late Piece food;
   late Offset foodPosition;
@@ -28,13 +28,23 @@ class _GamePageState extends State<GamePage> {
 
   late int lowerBoundX, upperBoundX, lowerBoundY, upperBoundY;
 
-  late Timer timer;
+  Timer? timer;
   double speed = 1;
 
   int score = 0;
 
   void draw() async {
-    //TODO
+    if (positions.length == 0) {
+      positions.add(getRandomPositionWithinRange());
+    }
+
+    while (length > positions.length) {
+      positions.add(positions[positions.length - 1]);
+    }
+    for (var i = positions.length - 1; i > 0; i--) {
+      positions[i] = positions[i - 1];
+    }
+    positions[0] = await getNextPosition(positions[0]);
   }
 
   Direction getRandomDirection(DirectionType type) {
@@ -72,13 +82,13 @@ class _GamePageState extends State<GamePage> {
     int posY = Random().nextInt(upperBoundY) + lowerBoundY;
     return Offset(
       roundToNearestTens(posX).toDouble(),
-      roundToNearestTens(posX).toDouble(),
+      roundToNearestTens(posY).toDouble(),
     );
   }
 
-  bool detectCollision(Offset position) {
-    //TODO
-  }
+  // bool detectCollision(Offset position) {
+  //   //TODO
+  // }
 
   void showGameOverDialog() {
     showDialog(
@@ -107,7 +117,7 @@ class _GamePageState extends State<GamePage> {
                   Navigator.of(context).pop();
                   restart();
                 },
-                child: Text(
+                child: const Text(
                   "Restart",
                   style: TextStyle(
                       color: Colors.white, fontWeight: FontWeight.bold),
@@ -119,27 +129,66 @@ class _GamePageState extends State<GamePage> {
   }
 
   Future<Offset> getNextPosition(Offset position) async {
-    //TODO
+    late Offset nextPosition;
+
+    if (direction == Direction.right) {
+      nextPosition = Offset(position.dx + step, position.dy);
+    } else if (direction == Direction.left) {
+      nextPosition = Offset(position.dx - step, position.dy);
+    } else if (direction == Direction.up) {
+      nextPosition = Offset(position.dx, position.dy - step);
+    } else if (direction == Direction.down) {
+      nextPosition = Offset(position.dx, position.dy + step);
+    }
+    return nextPosition;
   }
 
   void drawFood() {
-    //TODO
+    
   }
 
   List<Piece> getPieces() {
-    //TODO
+    final pieces = <Piece>[];
+    draw();
+    drawFood();
+
+    for (var i = 0; i < length; ++i) {
+      if (i >= positions.length) {
+        continue;
+      }
+
+      pieces.add(
+        Piece(
+          posX: positions[i].dx.toInt(),
+          posY: positions[i].dy.toInt(),
+          size: step,
+          color: Colors.red,
+          isAnimated: false,
+        ),
+      );
+      print(pieces);
+    }
+    return pieces;
   }
 
   Widget getControls() {
-    //TODO
+    return ControlPanel(onTapped: (Direction newDirection) {
+      print(newDirection);
+      direction = newDirection;
+      print(direction);
+    });
   }
 
   void changeSpeed() {
-    //TODO
+    if (timer != null && timer!.isActive) timer!.cancel();
+
+    timer = Timer.periodic(Duration(milliseconds: 200 ~/ speed), (timer) {
+      setState(() {});
+    });
   }
 
   void restart() {
-    //TODO
+    changeSpeed();
   }
 
   Widget getPlayAreaBorder() {
@@ -167,19 +216,26 @@ class _GamePageState extends State<GamePage> {
 
   @override
   Widget build(BuildContext context) {
-    screenHeight = MediaQuery.of(context).size.width;
+    screenWidth = MediaQuery.of(context).size.width;
     screenHeight = MediaQuery.of(context).size.height;
 
     lowerBoundX = step;
     lowerBoundY = step;
     upperBoundX = roundToNearestTens(screenWidth.toInt() - step);
     upperBoundY = roundToNearestTens(screenHeight.toInt() - step);
+    print("teste");
 
     return Scaffold(
+      //backgroundColor: Colors.amber,
       body: Container(
-        color: Color(0XFFF5BB00),
+        color: Colors.amber,
         child: Stack(
-          children: [],
+          children: [
+            Stack(
+              children: getPieces(),
+            ),
+          getControls(),
+          ],
         ),
       ),
     );
