@@ -213,6 +213,17 @@ class _GamePageState extends State<GamePage> {
     });
   }
 
+  Widget getScore() {
+    return Positioned(
+      top: 50,
+      right: 40,
+      child: Text(
+        "Pontuação: $score",
+        style: const TextStyle(fontSize: 24),
+      ),
+    );
+  }
+
   void changeSpeed() {
     if (timer != null && timer!.isActive) timer!.cancel();
 
@@ -222,6 +233,11 @@ class _GamePageState extends State<GamePage> {
   }
 
   void restart() {
+    positions = [];
+    length = 5;
+    score = 0;
+    direction = getRandomDirection(DirectionType.horizontal);
+    speed = 1;
     changeSpeed();
   }
 
@@ -271,6 +287,7 @@ class _GamePageState extends State<GamePage> {
             ),
             getControls(),
             food,
+            getScore(),
           ],
         ),
       ),
