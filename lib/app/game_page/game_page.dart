@@ -155,6 +155,14 @@ class _GamePageState extends State<GamePage> {
       color: Colors.blue,
       isAnimated: true,
     );
+
+    if (foodPosition == positions[0]) {
+      length++;
+      speed = speed + 0.25;
+      score = score + 5;
+      changeSpeed();
+      foodPosition = getRandomPositionWithinRange();
+    }
   }
 
   List<Piece> getPieces() {
