@@ -6,6 +6,10 @@ import 'package:game_snake/app/components/control_panel.dart';
 import 'package:game_snake/app/components/piece.dart';
 import 'package:game_snake/app/direction/direction.dart';
 import 'package:game_snake/app/direction/direction_type.dart';
+import 'package:game_snake/app/game_page/components/game_over_dialog.dart';
+import 'package:game_snake/app/game_page/components/score.dart';
+
+
 
 class GamePage extends StatefulWidget {
   const GamePage({Key? key}) : super(key: key);
@@ -33,7 +37,8 @@ class _GamePageState extends State<GamePage> {
 
   int score = 0;
 
-  void draw() async {
+  //Desenhando
+  void drawSnake() async {
     if (positions.length == 0) {
       positions.add(getRandomPositionWithinRange());
     }
@@ -45,118 +50,6 @@ class _GamePageState extends State<GamePage> {
       positions[i] = positions[i - 1];
     }
     positions[0] = await getNextPosition(positions[0]);
-  }
-
-  Direction getRandomDirection(DirectionType type) {
-    if (type == DirectionType.horizontal) {
-      bool random = Random().nextBool();
-      if (random) {
-        return Direction.right;
-      } else {
-        return Direction.left;
-      }
-    } else if (type == DirectionType.vertical) {
-      bool random = Random().nextBool();
-      if (random) {
-        return Direction.up;
-      } else {
-        return Direction.down;
-      }
-    } else {
-      int random = Random().nextInt(4);
-      return Direction.values[random];
-    }
-  }
-
-  int roundToNearestTens(int num) {
-    int divisor = step;
-    int output = (num ~/ divisor) * divisor;
-    if (output == 0) {
-      output += step;
-    }
-    return output;
-  }
-
-  Offset getRandomPositionWithinRange() {
-    int posX = Random().nextInt(upperBoundX) + lowerBoundX;
-    int posY = Random().nextInt(upperBoundY) + lowerBoundY;
-    return Offset(
-      roundToNearestTens(posX).toDouble(),
-      roundToNearestTens(posY).toDouble(),
-    );
-  }
-
-  bool detectCollision(Offset position) {
-    if (position.dx >= upperBoundX && direction == Direction.right) {
-      return true;
-    } else if (position.dx <= lowerBoundX && direction == Direction.left) {
-      return true;
-    } else if (position.dy >= upperBoundY && direction == Direction.down) {
-      return true;
-    } else if (position.dy <= lowerBoundY && direction == Direction.up) {
-      return true;
-    }
-    return false;
-  }
-
-  void showGameOverDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: Colors.red,
-          shape: RoundedRectangleBorder(
-            side: const BorderSide(
-              color: Colors.black,
-              width: 3.0,
-            ),
-            borderRadius: BorderRadius.circular(10.0),
-          ),
-          title: const Text(
-            "Gamer Over",
-            style: TextStyle(color: Colors.white),
-          ),
-          content: Text(
-            "Seu jogo acabou, mas vocẽ jogou bem. Sua ṕontuação foi: $score",
-            style: TextStyle(color: Colors.white),
-          ),
-          actions: [
-            TextButton(
-                onPressed: () async {
-                  Navigator.of(context).pop();
-                  restart();
-                },
-                child: const Text(
-                  "Restart",
-                  style: TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold),
-                ))
-          ],
-        );
-      },
-    );
-  }
-
-  Future<Offset> getNextPosition(Offset position) async {
-    late Offset nextPosition;
-
-    if (detectCollision(position) == true) {
-      if (timer != null && timer!.isActive) timer!.cancel();
-      await Future.delayed(
-          Duration(milliseconds: 500), () => showGameOverDialog());
-      return position;
-    }
-
-    if (direction == Direction.right) {
-      nextPosition = Offset(position.dx + step, position.dy);
-    } else if (direction == Direction.left) {
-      nextPosition = Offset(position.dx - step, position.dy);
-    } else if (direction == Direction.up) {
-      nextPosition = Offset(position.dx, position.dy - step);
-    } else if (direction == Direction.down) {
-      nextPosition = Offset(position.dx, position.dy + step);
-    }
-    return nextPosition;
   }
 
   void drawFood() {
@@ -181,31 +74,7 @@ class _GamePageState extends State<GamePage> {
     }
   }
 
-  List<Piece> getPieces() {
-    final pieces = <Piece>[];
-    draw();
-    drawFood();
-
-    for (var i = 0; i < length; ++i) {
-      if (i >= positions.length) {
-        continue;
-      }
-
-      pieces.add(
-        Piece(
-          posX: positions[i].dx.toInt(),
-          posY: positions[i].dy.toInt(),
-          size: step,
-          color: Colors.red,
-          isAnimated: false,
-        ),
-      );
-      print(pieces);
-    }
-    return pieces;
-  }
-
-  Widget getControls() {
+    Widget getControls() {
     return ControlPanel(onTapped: (Direction newDirection) {
       if (direction == Direction.left && newDirection == Direction.right) {
         direction = Direction.left;
@@ -222,16 +91,118 @@ class _GamePageState extends State<GamePage> {
     });
   }
 
-  Widget getScore() {
-    return Positioned(
-      top: 50,
-      right: 40,
-      child: Text(
-        "Pontuação: $score",
-        style: const TextStyle(fontSize: 24),
-      ),
+  int roundToNearestTens(int num) {
+  int divisor = step;
+  int output = (num ~/ divisor) * divisor;
+  if (output == 0) {
+    output += step;
+  }
+  return output;
+}
+
+  Offset getRandomPositionWithinRange() {
+    int posX = Random().nextInt(upperBoundX) + lowerBoundX;
+    int posY = Random().nextInt(upperBoundY) + lowerBoundY;
+    return Offset(
+      roundToNearestTens(posX).toDouble(),
+      roundToNearestTens(posY).toDouble(),
     );
   }
+
+  void showGameOverDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return GameOverDialog(score: score, restart: restart);
+      },
+    );
+  }
+  
+  bool detectCollision(
+  Offset position,
+) {
+  if (position.dx >= upperBoundX && direction == Direction.right) {
+    return true;
+  } else if (position.dx <= lowerBoundX && direction == Direction.left) {
+    return true;
+  } else if (position.dy >= upperBoundY && direction == Direction.down) {
+    return true;
+  } else if (position.dy <= lowerBoundY && direction == Direction.up) {
+    return true;
+  }
+
+  return false;
+}
+
+
+  Future<Offset> getNextPosition(Offset position) async {
+    late Offset nextPosition;
+
+    if (detectCollision(position) ==
+        true) {
+      if (timer != null && timer!.isActive) timer!.cancel();
+      await Future.delayed(
+          Duration(milliseconds: 500), () => showGameOverDialog());
+      return position;
+    }
+
+    if (direction == Direction.right) {
+      nextPosition = Offset(position.dx + step, position.dy);
+    } else if (direction == Direction.left) {
+      nextPosition = Offset(position.dx - step, position.dy);
+    } else if (direction == Direction.up) {
+      nextPosition = Offset(position.dx, position.dy - step);
+    } else if (direction == Direction.down) {
+      nextPosition = Offset(position.dx, position.dy + step);
+    }
+    return nextPosition;
+  }
+
+  
+
+  List<Piece> getPieces() {
+    final pieces = <Piece>[];
+    drawSnake();
+    drawFood();
+
+    for (var i = 0; i < length; ++i) {
+      if (i >= positions.length) {
+        continue;
+      }
+
+      pieces.add(
+        Piece(
+          posX: positions[i].dx.toInt(),
+          posY: positions[i].dy.toInt(),
+          size: step,
+          color: Colors.red,
+          isAnimated: false,
+        ),
+      );
+    }
+    return pieces;
+  }
+  Direction getRandomDirection(DirectionType type) {
+  if (type == DirectionType.horizontal) {
+    bool random = Random().nextBool();
+    if (random) {
+      return Direction.right;
+    } else {
+      return Direction.left;
+    }
+  } else if (type == DirectionType.vertical) {
+    bool random = Random().nextBool();
+    if (random) {
+      return Direction.up;
+    } else {
+      return Direction.down;
+    }
+  } else {
+    int random = Random().nextInt(4);
+    return Direction.values[random];
+  }
+}
+
 
   void changeSpeed() {
     if (timer != null && timer!.isActive) timer!.cancel();
@@ -282,7 +253,6 @@ class _GamePageState extends State<GamePage> {
     lowerBoundY = step;
     upperBoundX = roundToNearestTens(screenWidth.toInt() - step);
     upperBoundY = roundToNearestTens(screenHeight.toInt() - step);
-    print("teste");
 
     return Scaffold(
       //backgroundColor: Colors.amber,
@@ -296,7 +266,7 @@ class _GamePageState extends State<GamePage> {
             ),
             getControls(),
             food,
-            getScore(),
+            Score(score: score),
           ],
         ),
       ),
